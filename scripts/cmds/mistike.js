@@ -58,4 +58,4 @@ async function bal(uid) {
   const imagePath = path.join(__dirname, 'tmp', `${uid}.png`);
   await image.writeAsync(imagePath);
   return imagePath;
-  } 
+  }
