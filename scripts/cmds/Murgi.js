@@ -3,7 +3,7 @@ module.exports = {
 		name: "murgi",
     aliases: ["war"],
 		version: "1.0",
-		author:"nihan",
+		author:"MR.AYAN",
 		role: 2,
 		category: "War",
     shortDescription: "nothing",
