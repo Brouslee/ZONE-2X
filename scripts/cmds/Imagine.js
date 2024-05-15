@@ -1,91 +1,58 @@
 const axios = require('axios');
-const { getStreamFromURL } = global.utils;
+const path = require('path');
+const fs = require('fs-extra');
 
 module.exports = {
   config: {
     name: "imagine",
-    aliases: ["dall-e"],
-    author: "Samir",
+    aliases: ["imagine"],
     version: "1.0",
-    countDown: 10,
+    author: "Vex_Kshitiz",
+    countDown: 50,
     role: 0,
-    shortDescription: "Generates an image from a text description",
-    longDescription: "Generates an image from a text description",
+    longDescription: {
+      vi: '',
+      en: "Imagine"
+    },
     category: "ai",
     guide: {
-      en: "{pn} <text>"
+      vi: '',
+      en: "{pn} <prompt> - <ratio>"
     }
   },
 
-  langs: {
-    en: {
-      loading: "Generating image, please wait...",
-      error: "An error occurred, please try again later",
-      approve_success: "The imagine command has been approved!",
-      approve_error: "Only administrators can approve the imagine command",
-      disapprove_success: "The imagine command has been disapproved!",
-      disapprove_error: "Only administrators can disapprove the imagine command",
-      already_approved: "imagine command has already been approved",
-      already_disapproved: "The imagine command has already been disapproved",
-      group_not_approved: "imagine is paid command.Donate to my admin to use it"
-    }
-  },
-
-  onStart: async function ({ event, message, getLang, threadsData, api, args }) {
-    const { threadID } = event;
-
-    if (args[0] === "approve") {
-      if (global.GoatBot.config.adminBot.includes(event.senderID)) {
-        const approved = await threadsData.get(threadID, "settings.imagine_approved");
-        if (approved) {
-          return message.reply(getLang("already_approved"));
-        }
-        await threadsData.set(threadID, true, "settings.imagine_approved");
-        return message.reply(getLang("approve_success"));
-      }
-      return message.reply(getLang("approve_error"));
-    } else if (args[0] === "disapprove") {
-      if (global.GoatBot.config.adminBot.includes(event.senderID)) {
-        const approved = await threadsData.get(threadID, "settings.imagine_approved");
-        if (!approved) {
-          return message.reply(getLang("already_disapproved"));
-        }
-        await threadsData.set(threadID, false, "settings.imagine_approved");
-        return message.reply(getLang("disapprove_success"));
-      }
-      return message.reply(getLang("disapprove_error"));
-    }
-
-    const approved = await threadsData.get(threadID, "settings.imagine_approved");
-    if (!approved) {
-      return message.reply(getLang("group_not_approved"));
-    }
-
-    message.reply(getLang("loading"));
-    const text = args.join(' ');
-
+  onStart: async function ({ api, commandName, event, args }) {
     try {
-      const { data } = await axios.post(
-        'https://api.openai.com/v1/images/generations',
-        {
-          model: 'image-alpha-001',
-          prompt: text,
-          num_images: 1
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer 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`
-          }
+      api.setMessageReaction("✅", event.messageID, (a) => {}, true);
+      let prompt = args.join(' ');
+      let ratio = '1:1';
+
+      if (args.length > 0 && args.includes('-')) {
+        const parts = args.join(' ').split('-').map(part => part.trim());
+        if (parts.length === 2) {
+          prompt = parts[0];
+          ratio = parts[1];
         }
-      );
-      const imageURL = data.data[0].url;
-      const image = await getStreamFromURL(imageURL);
-      return message.reply({
-        attachment: image
-      });
-    } catch (err) {
-      return message.reply(getLang("error"));
+      }
+
+      const response = await axios.get(`https://imagine-kshitiz-zia7.onrender.com/mj?prompt=${encodeURIComponent(prompt)}&ratio=${encodeURIComponent(ratio)}`);
+      const imageUrls = response.data.imageUrls;
+
+      const imgData = [];
+      const numberOfImages = 4;
+
+      for (let i = 0; i < Math.min(numberOfImages, imageUrls.length); i++) {
+        const imageUrl = imageUrls[i];
+        const imgResponse = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+        const imgPath = path.join(__dirname, 'cache', `${i + 1}.jpg`);
+        await fs.outputFile(imgPath, imgResponse.data);
+        imgData.push(fs.createReadStream(imgPath));
+      }
+
+      await api.sendMessage({ body: '', attachment: imgData }, event.threadID, event.messageID);
+    } catch (error) {
+      console.error("Error:", error);
+      api.sendMessage("error contact kshitiz", event.threadID, event.messageID);
     }
   }
-}; 
+};
