@@ -5,7 +5,7 @@ module.exports = {
     config: {
         name: "gemini",
         version: "1.0",
-        author: "MR.AYAN", //**original author fb I'd : https://m.me/NOOBS.DEVELOPER.AYAN **//
+        author: "Samir Thakuri",
         countDown: 5,
         role: 0,
         shortDescription: "Chat with Gemini API",
