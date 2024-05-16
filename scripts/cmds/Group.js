@@ -1,149 +1,121 @@
-const axios = require("axios");
-const fs = require("fs");
-const os = require("os");
-const path = require("path");
-
-const sentVideos = new Map();
-
-const groupNames = {
-  mxm: "1544123312616479",
-  prettysouls: "579133843242227", 
-  youngkid: "1386387971848529",
-  managementmeme: "1218970378693117",
-  relatable: "456847926569537",
-  literally: "942254986938304",
-  sigma: "742398074285793",
-  lev: "254180353715899",
-  usbhaius: "351478143529525",
-  uss: "1249388862279187",
-  corny:"522569259482390",
-};
+const fs = require("fs-extra");
+const request = require("request");
 
 module.exports = {
-  config: {
-    name: "group",
-    aliases: ["fbgroup"],
+config: {
+		name: "group",
     version: "1.0",
-    role: 0,
-    author: "𝗞𝘀𝗵𝗶𝘁𝗶𝘇",
-    shortDescription: "Send a random video from a Facebook group",
-    longDescription: "Send a random  from a Facebook group",
-    category: "𝗙𝗕𝗚𝗥𝗢𝗨𝗣",
-    dependencies: {
-      axios: "",
-    },
-  },
-  onStart: async function ({ api, event, args }) {
-    try {
-      const triggerMessageID = event.messageID;
-      const loadingMessage = await api.sendMessage(
-        "𝗣𝗿𝗼𝗰𝗲𝘀𝘀𝗶𝗻𝗴 𝘆𝗼𝘂𝗿 𝗿𝗲𝗾𝘂𝗲𝘀𝘁.. ✅",
-        event.threadID
-      );
-
-      const groupName = args[0] ? args[0].toLowerCase() : null;
-
-      if (!groupName || !groupNames[groupName]) {
-        const availableGroups = Object.keys(groupNames).join(", ");
-        return api.sendMessage(`Invalid group name. Available groups: ${availableGroups}`, event.threadID, event.messageID);
-      }
-
-      const groupId = groupNames[groupName];
-      const accessToken = "EAAD6V7..add you token here";
-      const apiVersion = "v18.0";
-
-      const groupUrl = `https://graph.facebook.com/${apiVersion}/${groupId}/feed?access_token=${accessToken}&fields=attachments{url,type},source`;
-      const response = await axios.get(groupUrl);
-      const posts = response.data.data || [];
-      const videos = posts
-        .filter((post) => post.source && typeof post.source === "string")
-        .map((post) => post.source);
-
-      if (videos.length === 0) {
-        await api.sendMessage(
-          `No video links found in the group ${groupName}.`,
-          event.threadID,
-          loadingMessage.messageID
-        );
-      } else {
-        const unsentVideos = videos.filter(video => !isVideoSent(groupName, video));
-
-        if (unsentVideos.length === 0) {
-          await api.sendMessage(
-            `All videos from the group ${groupName} have been sent before.`,
-            event.threadID,
-            loadingMessage.messageID
-          );
-        } else {
-          const randomVideo =
-            unsentVideos[Math.floor(Math.random() * unsentVideos.length)] + "&dl=1";
-
-          const tempDir = path.join(os.tmpdir(), "fb_videos");
-          if (!fs.existsSync(tempDir)) {
-            fs.mkdirSync(tempDir);
-          }
-
-          const randomFileName = `video_${Date.now()}.mp4`;
-
-          const filePath = path.join(tempDir, randomFileName);
-
-          const videoResponse = await axios({
-            method: "GET",
-            url: randomVideo,
-            responseType: "stream",
-          });
-
-          videoResponse.data.pipe(fs.createWriteStream(filePath));
-
-          videoResponse.data.on("end", async () => {
-            if (fs.existsSync(filePath)) {
-              await api.sendMessage(
-                {
-                  body: `Random video from the group ${groupName}:`,
-                  attachment: fs.createReadStream(filePath),
-                },
-                event.threadID,
-                triggerMessageID
-              );
-
-              markVideoAsSent(groupName, randomVideo);
-
-              api.unsendMessage(loadingMessage.messageID);
-            } else {
-              console.error("File does not exist:", filePath);
-
-              await api.sendMessage(
-                "An error occurred while fetching the video. Please try again later.",
-                event.threadID
-              );
-            }
-          });
-
-          videoResponse.data.on("error", async (err) => {
-            console.error("Error during video download:", err);
-            await api.sendMessage(
-              "An error occurred while fetching the video. Please try again later.",
-              event.threadID
-            );
-
-            api.unsendMessage(loadingMessage.messageID);
-          });
-        }
-      }
-    } catch (error) {
-      console.error("Error retrieving videos:", error);
-      await api.sendMessage("An error occurred while retrieving videos.", event.threadID);
+		author: "Samir Thakuri",
+		countDown: 5,
+		role: 1,
+		shortDescription: "See Box info and changes",
+		longDescription: "",
+		category: "box chat",
+		guide: {
+      en: "[name/emoji/admin/image/info]",
     }
-  },
-};
+	},
 
-function isVideoSent(groupName, videoLink) {
-  return sentVideos.has(groupName) && sentVideos.get(groupName).has(videoLink);
-}
+ onStart: async function ({ api, event, args }) {
+	 if (args.length == 0) return api.sendMessage(`You can use:\n/group emoji [icon]\n\n/group name [the box name needs to be changed]\n\n/group image [rep any image needs to be set as group chat image]\n\n/group admin [tag] => it will give qtv to the person tagged\n\n/group info => All group information !
+`, event.threadID, event.messageID);
 
-function markVideoAsSent(groupName, videoLink) {
-  if (!sentVideos.has(groupName)) {
-    sentVideos.set(groupName, new Set());
-  }
-  sentVideos.get(groupName).add(videoLink);
-}
+
+	if (args[0] == "name") {
+var content = args.join(" ");
+var c = content.slice(4, 99) || event.messageReply.body;
+api.setTitle(`${c } `, event.threadID);
+ }
+	if (args[0] == "emoji") {
+const name = args[1] || event.messageReply.body;
+api.changeThreadEmoji(name, event.threadID)
+
+ }
+if(args[0] == "me"){
+	 if (args[1] == "admin") {
+		const threadInfo = await api.getThreadInfo(event.threadID)
+		const find = threadInfo.adminIDs.find(el => el.id == api.getCurrentUserID());
+		if(!find) api.sendMessage("BOT needs to throw admin to use ?", event.threadID, event.messageID)
+	  else if(!global.GoatBot.config.adminBot.includes(event.senderID)) api.sendMessage("Cunt powers ?", event.threadID, event.messageID)
+     else api.changeAdminStatus(event.threadID, event.senderID, true);
+     }
+} 
+if (args[0] == "admin") {
+
+if (args.join().indexOf('@') !== -1){
+	 namee = Object.keys(event.mentions)}
+else namee = args[1]
+if (event.messageReply) {namee = event.messageReply.senderID}
+
+const threadInfo = await api.getThreadInfo(event.threadID)
+const findd = threadInfo.adminIDs.find(el => el.id == namee);
+const find = threadInfo.adminIDs.find(el => el.id == api.getCurrentUserID());
+const finddd = threadInfo.adminIDs.find(el => el.id == event.senderID);
+
+if (!finddd) return api.sendMessage("You are not a box admin ?", event.threadID, event.messageID);		
+if(!find) {api.sendMessage("Don't throw the admin using the cock?", event.threadID, event.messageID)}
+if (!findd) {api.changeAdminStatus(event.threadID, namee, true);}
+else api.changeAdminStatus(event.threadID, namee, false)
+ }
+
+if (args[0] == "image") {
+
+if (event.type !== "message_reply") return api.sendMessage("❌ You must reply to a certain audio, video, or photo", event.threadID, event.messageID);
+	if (!event.messageReply.attachments || event.messageReply.attachments.length == 0) return api.sendMessage("❌ You must reply to a certain audio, video, or photo", event.threadID, event.messageID);
+	if (event.messageReply.attachments.length > 1) return api.sendMessage(`Please reply only one audio, video, photo!`, event.threadID, event.messageID);
+	 var callback = () => api.changeGroupImage(fs.createReadStream(__dirname + "/cache/1.png"), event.threadID, () => fs.unlinkSync(__dirname + "/cache/1.png"));	
+      return request(encodeURI(event.messageReply.attachments[0].url)).pipe(fs.createWriteStream(__dirname+'/cache/1.png')).on('close',() => callback());
+      };
+if (args[0] == "info") {
+		var threadInfo = await api.getThreadInfo(event.threadID);
+		let threadMem = threadInfo.participantIDs.length;
+	var gendernam = [];
+	var gendernu = [];
+	var nope = [];
+	for (let z in threadInfo.userInfo) {
+		var gioitinhone = threadInfo.userInfo[z].gender;
+
+		var nName = threadInfo.userInfo[z].name;
+
+		if (gioitinhone == 'MALE') {
+			gendernam.push(z + gioitinhone);
+		} else if (gioitinhone == 'FEMALE') {
+			gendernu.push(gioitinhone);
+		} else {
+			nope.push(nName);
+		}
+	}
+	var nam = gendernam.length;
+	var nu = gendernu.length;
+	let qtv = threadInfo.adminIDs.length;
+	let sl = threadInfo.messageCount;
+	let icon = threadInfo.emoji;
+	let threadName = threadInfo.threadName;
+	let id = threadInfo.threadID;
+	var listad = '';
+	var qtv2 = threadInfo.adminIDs;
+	for (let i = 0; i < qtv2.length; i++) {
+const infu = (await api.getUserInfo(qtv2[i].id));
+const name = infu[qtv2[i].id].name;
+		listad += '•' + name + '\n';
+	}
+	let sex = threadInfo.approvalMode;
+	var pd = sex == false ? 'Turn off' : sex == true ? 'Turn on' : 'Kh';
+	var pdd = sex == false ? '❎' : sex == true ? '✅' : '⭕';
+	 var callback = () =>
+				api.sendMessage(
+					{
+						body: `GC Name: ${threadName}\nGC ID: ${id}\n${pdd} Approve: ${pd}\nEmoji: ${icon}\n-Information:\nTotal ${threadMem} members\nMale ${nam} members \nFemale: ${nu} members\n\nWith ${qtv} Administrators include:\n${listad}\nTotal number of messages: ${sl} msgs.`,
+						attachment: fs.createReadStream(__dirname + '/cache/1.png')
+					},
+					event.threadID,
+					() => fs.unlinkSync(__dirname + '/cache/1.png'),
+					event.messageID
+				);
+			return request(encodeURI(`${threadInfo.imageSrc}`))
+				.pipe(fs.createWriteStream(__dirname + '/cache/1.png'))
+				.on('close', () => callback());
+
+	}
+ }
+}; 
