@@ -18,7 +18,7 @@
   },
   "adminBot": [
     "61551774501334",
-    "",
+    "100079908017635",
     "",
     "",
     "",
@@ -32,11 +32,11 @@
   "whiteListMode": {
     "enable": false,
     "whiteListIds": [
-      "61551774501334"
+      "100079908017635"
     ],
     "notes": "if you enable this feature, only the ids in the whiteListIds section can use the bot"
   },
-  "nickNameBot": "⇛ 𝑀𝐼𝑅𝐴❈𝐾𝐼𝑀❈𝑅𝑂𝐵𝑂𝑇❈ ⇚",
+  "nickNameBot": "⇛ SISIR❈𝑅𝑂𝐵𝑂𝑇❈ ⇚",
   "prefix": "-",
   "database": {
     "type": "sqlite",
