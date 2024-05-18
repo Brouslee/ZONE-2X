@@ -2,7 +2,7 @@ const fs = require("fs-extra");
 const axios = require("axios");
 const path = require("path");
 
-const cookie = "1fF83K-Z0uVQOqG0deEpKHPb0SUlxxJzemZyVSMs6WXD6Y1qFCioFc8no8eZNZwIU49ItQ-MNEY4Gp3gjIG9NgTvoiBKCVDG1-bzbvz7P9qgwjE9FrLGNX-yZQywc3kddeHsMiISe7b0Iwp2DAsNy9y1tj7N1-CYMPkvwuv1O9RE2XD-BvrQQFLXllQ2XGudGsTH06X4gvkLix1v29qxNPQ"; // Enter _U value.
+const cookie = "1F719B5911D8696E10A38F2610756809"; // Enter _U value.
 const auth = "https://tinyurl.com/4ctrj6y7"; // Enter KievRPSSecAuth value.
 
 module.exports = {
